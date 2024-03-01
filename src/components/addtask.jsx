@@ -2,41 +2,33 @@ import React, { useEffect, useState } from "react";
 import Tasks from './tasks';
 
 const ToDoForm = () => {
-
-    const [tasks, setTasks] = useState([]);
+    const [tasks, setTasks] = useState(() => {
+        const storedTasks = JSON.parse(localStorage.getItem('tasks'));
+        return storedTasks || [];
+    });
     const [taskInput, setTaskInput] = useState("");
 
     useEffect(() => {
-        localStorage.setItem('tasks', JSON.stringify(tasks))
-    }, [tasks]);
-
-    useEffect(() => {
-        const task = JSON.parse(localStorage.getItem('tasks'));
-        setTasks(task);
+        localStorage.setItem('tasks', JSON.stringify(tasks));
     }, [tasks]);
 
     function addTask(e) {
         e.preventDefault();
-        setTasks((prevTasks) => {
-            return [...prevTasks, { name: taskInput }];
-        });
+        const newTask = { name: taskInput };
+        setTasks([...tasks, newTask]);
         setTaskInput("");
     }
 
     function removeTask(index) {
-        setTasks((prevTask) => {
-            const updateTask = [...prevTask];
-            updateTask.splice(index, 1);
-            return updateTask;
-        })
+        const updatedTasks = [...tasks];
+        updatedTasks.splice(index, 1);
+        setTasks(updatedTasks);
     }
 
     function renameTask(index, newName) {
-        setTasks((prev) => {
-            const newTask = [...prev];
-            newTask[index].name = newName
-            return newTask;
-        });
+        const updatedTasks = [...tasks];
+        updatedTasks[index].name = newName;
+        setTasks(updatedTasks);
     }
 
     return (
@@ -51,13 +43,14 @@ const ToDoForm = () => {
                     onChange={(e) => setTaskInput(e.target.value)}
                 />
             </form>
-            {
-                tasks.map((task, index) => (
-                    <Tasks key={index} {...task}
+            {tasks.map((task, index) => (
+                <Tasks
+                    key={index}
+                    {...task}
                     onRename={(newName) => renameTask(index, newName)}
-                    removeTask={() => removeTask(index)}/>
-                ))
-            }
+                    removeTask={() => removeTask(index)}
+                />
+            ))}
         </div>
     );
 }
